@@ -1,0 +1,43 @@
+name: Trigger auto deployment for portfolio-analytics-service
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/portfolio-analytics-service-AutoDeployTrigger-f4f63a71-3eb5-452a-bad0-d66be2a043ea.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.PORTFOLIOANALYTICSSERVICE_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: pmgregistry.azurecr.io
+          registryUsername: ${{ secrets.PORTFOLIOANALYTICSSERVICE_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.PORTFOLIOANALYTICSSERVICE_REGISTRY_PASSWORD }}
+          containerAppName: portfolio-analytics-service
+          resourceGroup: portfolio-manager-resource
+          imageToBuild: pmgregistry.azurecr.io/portfolio-analytics-service:${{ github.sha }}
+          
+            
+
+     
+
