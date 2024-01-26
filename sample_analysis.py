@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import numpy as np
 from scipy.stats import norm
 
 app = Flask(__name__)
+CORS(app)
 
 def black_scholes(S, K, T, r, sigma, option_type="call"):
     d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
@@ -31,6 +33,34 @@ def calculate():
         return jsonify({'result': result})
     except Exception as e:
         return jsonify({'error': str(e)})
+    
+def calculate_delta(S, K, T, r, sigma, option_type="call"):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+
+    if option_type == "call":
+        delta = norm.cdf(d1)
+    elif option_type == "put":
+        delta = norm.cdf(d1) - 1
+    else:
+        raise ValueError("Invalid option type")
+
+    return delta
+
+@app.route('/calculate_delta', methods=['GET'])
+def calculate_delta_():
+    try:
+        S = float(request.args.get('S'))
+        K = float(request.args.get('K'))
+        T = float(request.args.get('T'))
+        r = float(request.args.get('r'))
+        sigma = float(request.args.get('v'))
+        option_type = request.args.get('type', default='call', type=str)
+
+        delta = calculate_delta(S, K, T, r, sigma, option_type)
+        return jsonify({'delta': delta})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
