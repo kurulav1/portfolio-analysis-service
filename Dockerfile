@@ -2,12 +2,13 @@ FROM python:3.9-slim
 
 WORKDIR /usr/src/app
 
-COPY . .
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --no-cache-dir flask numpy scipy
+COPY . .
 
 EXPOSE 8080
 
 ENV NAME World
 
-CMD ["python", "sample_analysis.py"]
+CMD ["python", "analysis_service.py"]
